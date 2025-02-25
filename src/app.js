@@ -21,7 +21,14 @@ const app = express();
 //     allowedHeaders: "Content-Type, Authorization",
 //   })
 // );
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    credentials: true,
+    methods: "GET, POST, PUT, PATCH, DELETE",
+    allowedHeaders: "Content-Type, Authorization",
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use("/api/v1/auth", authRouter);
