@@ -21,10 +21,10 @@ const app = express();
 // );
 app.use(
   cors({
-    origin: "*",
+    origin: "https://square-foundation-frontend.vercel.app/",
     credentials: true,
-    methods: "GET, POST, PUT, PATCH, DELETE",
-    allowedHeaders: ["Content-Type, Authorization"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 // methods: "GET, POST, PUT, PATCH, DELETE",
