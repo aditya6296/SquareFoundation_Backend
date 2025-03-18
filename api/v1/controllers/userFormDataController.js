@@ -1,11 +1,11 @@
-const { SquareFormData } = require("../../../schemas/formSchema");
+const { FormDetails } = require("../../../schemas/formDetailSchema");
 
 const userFormData = async (req, res) => {
   try {
     const { formData } = req.body;
     console.log("body formDAta ------>", formData);
 
-    const result = await SquareFormData.create({
+    const result = await FormDetails.create({
       ...formData,
     });
 

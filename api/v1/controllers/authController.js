@@ -68,7 +68,8 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
   const { email, password: userPassword } = req.body;
-  const user = await UsersData.findOne({ email }).select("email password");
+  // req.session.user = { email }; // Store user email in session changes 
+  const user = await UsersData.findOne({ email }).select("email password _id");
   console.log("user", user);
   //find db user with that email
   if (!user) {
@@ -80,7 +81,7 @@ const loginUser = async (req, res) => {
   }
 
   // password match
-  const { password: hashedPassword } = user;
+  const { password: hashedPassword, _id } = user;
   const isPasswordCorrect = await bcrypt.compare(userPassword, hashedPassword);
 
   if (!isPasswordCorrect) {
@@ -91,15 +92,16 @@ const loginUser = async (req, res) => {
     return;
   }
 
-  const token = jwt.sign({ email }, "bsbdyukcvucvubdbwukyjlsAj", {
+  const token = jwt.sign({ email, userID: _id }, process.env.JWT_SECRET_KEY, {
     expiresIn: 48 * 60 * 60,
   });
 
   res.cookie("token", token, {
-    secure: true,
-    sameSite: "None",
+    // secure: false, // false for local development
+    // sameSite: "None",
     httpOnly: true,
-    maxAge: 9000000, // expires in 15 min
+    maxAge: 12 * 60 * 60 * 1000, // expires in 12 hours (12 * 60 * 60 * 1000 ms)
+    // maxAge: 9000000, // expires in 15 min
   });
 
   res.status(200).json({
@@ -108,6 +110,7 @@ const loginUser = async (req, res) => {
     data: {
       user: {
         email,
+        userID: _id,
       },
     },
   });
@@ -124,7 +127,6 @@ const logoutUser = (req, res) => {
   res.status(200).json({
     status: "success",
     message: "Logout Successfully",
-    
   });
 };
 
