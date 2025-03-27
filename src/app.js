@@ -23,7 +23,7 @@ const app = express();
 app.use(
   cors({
     origin: [
-      // "https://square-foundation-frontend.vercel.app",
+      "https://square-foundation-frontend.vercel.app",
       "http://localhost:5173",
     ],
     credentials: true,
