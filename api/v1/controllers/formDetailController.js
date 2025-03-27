@@ -31,28 +31,14 @@ const DetailsData = async (req, res) => {
         .json({ exists: false, message: "Application details not found" });
     }
 
-    // const matchedApplication = scholarship.application.find(
-    //   (app) => app.userId === userID && app.applicationId === id
-    // );
-
-    // if (!matchedApplication) {
-    //   return res
-    //     .status(404)
-    //     .json({ exists: false, message: "Application details not found" });
-    // }
-
-    // res.json({
-    //   exists: true,
-    //   message: "Scholarship found",
-    //   data: matchedApplication,
-    // });
+    
   } catch (error) {
     console.error("Error checking scholarship:", error);
     res.status(500).json({ exists: false, message: "Server error" });
   }
 };
 
-const showDetailsData = () => {
+const showDetailsData = (req, res) => {
   console.log("ShowData");
 };
 

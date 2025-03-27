@@ -19,7 +19,7 @@ const registerUser = async (req, res) => {
 
     const result = await UserOTP.findOne({
       email,
-      createdAt: { $gte: Date.now() - 2 * 60 * 1000 },
+      createdAt: { $gte: Date.now() - 1 * 60 * 1000 },
     }).sort("-createdAt");
 
     const { otp: dbOtp } = result || {};
@@ -68,10 +68,8 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
   const { email, password: userPassword } = req.body;
-  // req.session.user = { email }; // Store user email in session changes 
   const user = await UsersData.findOne({ email }).select("email password _id");
   console.log("user", user);
-  //find db user with that email
   if (!user) {
     res.status(401).json({
       status: "Fail",
@@ -172,13 +170,6 @@ const forgotPassword = async (req, res) => {
       email,
       createdAt: { $gte: new Date(Date.now()) - 2 * 60 * 1000 },
     }).sort("-createdAt");
-
-    // createdAt: { $gte: Date.now() - 1 * 60 * 1000 },
-    // }).sort("-createdAt");
-
-    // createdAt: { $gte: new Date(Date.now() - 1 * 60 * 1000) } // OTP must be within the last 1 minute
-
-    // const { otp: dbOtp } = result || {};
 
     if (!result || !result.otp) {
       res.status(401).json({

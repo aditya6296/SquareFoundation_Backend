@@ -1,5 +1,14 @@
 const mongoose = require("mongoose");
 
+const metaDataSchema = new mongoose.Schema({
+  metaData: {
+    type: Object,
+  },
+  // uploadTime: { type: Date, default: Date.now }, // Timestamp of file upload
+  // multerPath: { type: String }, // Local storage path
+  // cloudinaryUrl: { type: String }, // ✅ Cloudinary URL added
+});
+
 const formData = mongoose.Schema(
   {
     application: [
@@ -24,18 +33,92 @@ const formData = mongoose.Schema(
           passOutYear: { type: String },
           reason: { type: String },
         },
+
         uploadDocuments: {
-          identificationId: {
-            type: String,
-            enum: ["Aadhaar", "PAN", "Voter ID", "Passport", "Driving License"],
-            required: true, // Ensures a document is uploaded
-          },
-          documentUrl: {
-            type: String, // This will store the file URL or path
-            // required: true, // Ensures a document is uploaded
-            trim: true, // Removes unnecessary spaces
-          },
+          photo: [
+            {
+              originalFileName: { type: String },
+              fileName: { type: String },
+              filePath: { type: String },
+              fileSize: { type: Number },
+              fileType: {
+                type: String,
+                required: true,
+                enum: [
+                  "image/jpeg",
+                  "image/png",
+                  "image/jpg",
+                  "application/pdf",
+                ],
+              },
+              metaData: metaDataSchema,
+            },
+          ],
+          // identityDocument
+          identityProof: [
+            {
+              identificationId: {
+                type: String,
+                required: true,
+                enum: [
+                  "Aadhaar",
+                  "PAN",
+                  "Voter ID",
+                  "Passport",
+                  "Driving License",
+                ],
+              },
+              fileName: { type: String },
+              filePath: { type: String, required: true }, // Stores uploaded ID proof
+              fileSize: { type: Number },
+              fileType: {
+                type: String,
+                required: true,
+                enum: ["image/jpeg", "image/png", "application/pdf"],
+              },
+              metaData: metaDataSchema,
+            },
+          ],
+          academicTranscript: [
+            {
+              fileName: { type: String },
+              filePath: { type: String, required: true }, // Stores academic transcript
+              fileSize: { type: Number },
+              fileType: {
+                type: String,
+                required: true,
+                enum: ["application/pdf", "image/jpeg", "image/png"],
+              },
+              metaData: {
+                uploadTime: { type: Date, default: Date.now }, // Timestamp of file upload
+                multerPath: { type: String }, // Local storage path
+                cloudinaryUrl: { type: String }, // ✅ Cloudinary URL added
+              },
+            },
+          ],
+          personalStatement: [
+            {
+              fileName: { type: String },
+              filePath: { type: String, required: true }, // Stores personal statement document
+              fileSize: { type: Number },
+              fileType: {
+                type: String,
+                required: true,
+                enum: [
+                  "application/pdf",
+                  "application/msword",
+                  "image/jpeg",
+                  "image/png",
+                ],
+              },
+              metaData: metaDataSchema,
+            },
+          ],
         },
+        // metaData: {
+        //   uploadTime: { type: Date, default: Date.now }, // Timestamp of file upload
+        //   multerPath: { type: String }, // Path of the file in local storage
+        // },
       },
     ],
   },

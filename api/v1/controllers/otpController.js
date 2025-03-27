@@ -14,19 +14,9 @@ const createOTP = async (req, res) => {
       return;
     }
 
-    //  for check already sent or not
-    // const existingUser = await UsersData.findOne({ email });
-
-    // if (existingUser) {
-    //   return res.status(400).json({
-    //     status: "Fail",
-    //     message: "User already registered. Please log in.",
-    //   });
-    // }
-
     const oldOTP = await UserOTP.findOne({
       email,
-      createdAt: { $gte: Date.now() - 2 * 60 * 1000 },
+      createdAt: { $gte: Date.now() - 1 * 60 * 1000 },
     });
 
     if (!isResend && oldOTP) {
