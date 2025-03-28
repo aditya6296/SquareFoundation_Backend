@@ -378,7 +378,7 @@ const createFile = async (req, res) => {
   }
 };
 
-const reviewData = (req, res) => {
+const reviewData = async (req, res) => {
   try {
     const userID = req.user.userID;
     if (!userID) {
@@ -391,10 +391,22 @@ const reviewData = (req, res) => {
     const { id: applicationId } = req.params;
     console.log("applicationId in review api -> :", applicationId);
 
-    res.status(200).json({
-      status: "success",
-      message: "Review data send successfully",
+    const filledData = await FormDetails.findOne({
+      "application.userId": userID,
+      "application.applicationId": applicationId,
     });
+    console.log("filledData", filledData);
+    if (filledData) {
+      return res.status(200).json({
+        status: "success",
+        message: "Review data send successfully",
+        data: filledData, // Send the existing application data
+      });
+    } else {
+      return res
+        .status(404)
+        .json({ exists: false, message: "Application details not found" });
+    }
   } catch (err) {
     console.log(err);
     res.status(500).json({
