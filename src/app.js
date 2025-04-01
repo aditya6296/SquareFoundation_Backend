@@ -2,7 +2,6 @@ require("dotenv").config();
 const PORT = process.env.PORT || 2200;
 const cors = require("cors");
 const express = require("express");
-const multer = require("multer");
 require("../dataBase/database.js");
 const cookieParser = require("cookie-parser");
 
@@ -40,9 +39,8 @@ app.use(express.urlencoded({ extended: true })); // ✅ For form submissions
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/auth/otp", otpRouter);
 
-app.use("/api/v1/dashboard", dashboardRouter);
-
 app.use(verifyToken); // verify token
+app.use("/api/v1/dashboard", dashboardRouter);
 app.use("/api/v1/application-form", scholarshipFormRouter);
 app.use("/api/v1/application-form", formRouter);
 app.use("/api/v1/application-status", applicationStatusRouter);
