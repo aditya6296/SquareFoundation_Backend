@@ -95,11 +95,10 @@ const loginUser = async (req, res) => {
   });
 
   res.cookie("token", token, {
-    // secure: false, // false for local development
-    // sameSite: "None",
+    secure: true, // for deployement
+    sameSite: "None",
     httpOnly: true,
-    maxAge: 12 * 60 * 60 * 1000, // expires in 12 hours (12 * 60 * 60 * 1000 ms)
-    // maxAge: 9000000, // expires in 15 min
+    maxAge: 24 * 60 * 60 * 1000, // expires in 24 hours (24 * 60 * 60 * 1000 ms)
   });
 
   res.status(200).json({
