@@ -155,40 +155,27 @@ const academicDetailsData = async (req, res) => {
 const createFileDocumentInMongoDB = async (req, res) => {
   try {
     const userID = req.user.userID;
-    if (!userID) {
-      // return res.status(401).json({
-      //   status: "Fail",
-      //   message: "Unauthorized: User ID not found",
-      // });
+    if (!userID)
       return { error: "Unauthorized: User ID not found", status: 401 };
-    }
 
     const { id: applicationId } = req.params;
-    console.log("applicationId in fles api -> :", applicationId);
-
     const files = req.files;
-    console.log("files at upload api -> :", files);
-    if (!req.files) {
-      //
-      return { error: "No file uploaded", status: 400 };
-    }
+    if (!files) return { error: "No file uploaded", status: 400 };
 
     const fileData = {};
     Object.keys(files).forEach((key) => {
-      fileData[key] = {
-        originalFileName: files[key][0].originalname || "",
-        fileName: files[key][0].filename || "",
-        filePath: files[key][0].path || "",
-        fileSize: files[key][0].size || 0,
-        fileType: files[key][0].mimetype || "",
+      fileData[key] = files[key].map((file) => ({
+        originalFileName: file.originalname || "",
+        fileName: file.filename || "",
+        filePath: file.path || "",
+        fileSize: file.size || 0,
+        fileType: file.mimetype || "",
         metaData: {
           uploadTime: new Date(),
-          multerPath: files[key][0].path || "", // Local storage path
+          multerPath: file.path || "",
         },
-      };
+      }));
     });
-
-    console.log("Files at filrData ➡️😊:", files);
 
     const existApplication = await FormDetails.findOne({
       "application.userId": userID,
@@ -201,16 +188,11 @@ const createFileDocumentInMongoDB = async (req, res) => {
           "application.userId": userID,
           "application.applicationId": applicationId,
         },
-        // { $set: { "application.$.uploadDocuments.photo": [fileData] } }, // Replace personal details
         { $set: { "application.$.uploadDocuments": fileData } },
-        { new: true } // Return updated document
+        { new: true }
       );
-
       return { status: 200, data: updatedDocumentApplication };
     } else {
-      // $set updates only a specific field inside an existing document.
-      // $push adds an element to an existing array inside a document.
-
       const createFile = await FormDetails.create({
         application: [
           {
@@ -221,71 +203,68 @@ const createFileDocumentInMongoDB = async (req, res) => {
         ],
       });
 
-      return res.status(201).json({
-        status: "success",
-        message: "Document upload successfully",
-        data: {
-          file: createFile,
-        },
-      });
+      return { status: 201, data: createFile };
     }
   } catch (err) {
     console.log(err);
-    return res.status(500).json({
-      status: "fail",
-      message: "Internal Server Error",
-    });
+    return { error: "Internal Server Error", status: 500 };
   }
 };
 
-const uploadFileToCloudinary = async (file) => {
+const uploadFileToCloudinary = async (
+  file,
+  documentType,
+  userID,
+  applicationId
+) => {
   console.log("Hello cloudinary");
   console.log("file at uploadfilecloudnary :", Object.keys(file));
 
   try {
     const filePath = file.filePath;
-
-    console.log(
-      "file path at uploadfilecloudnary at file path :",
-      file.filePath
-    );
     if (!filePath) throw new Error("File path not found!");
-
-    console.log("console cloudinary =>", cloudinary);
 
     const result = await cloudinary.uploader.upload(filePath, {
       folder: "upload",
       timeout: 60000,
     });
 
-    console.log("result at uploadFileToCloudinary :", result);
+    console.log("✅ Uploaded to Cloudinary:", result.secure_url);
 
-    try {
-      await FormDetails.findOneAndUpdate(
-        {
-          "application.uploadDocuments.photo.filePath": filePath, // Find the specific file entry
-        },
-        {
-          $set: {
-            "application.$.uploadDocuments.photo.$.metaData.cloudinaryUrl":
-              result.secure_url || result.url,
+    const updateResult = await FormDetails.findOneAndUpdate(
+      {
+        application: {
+          $elemMatch: {
+            userId: userID,
+            applicationId: applicationId,
           },
-        }
-      );
+        },
+      },
+      {
+        $set: {
+          [`application.$[app].uploadDocuments.${documentType}.$[doc].metaData.cloudinaryUrl`]:
+            result.secure_url,
+        },
+      },
+      {
+        arrayFilters: [
+          {
+            "app.userId": userID,
+            "app.applicationId": applicationId,
+          },
+          {
+            "doc.filePath": filePath,
+          },
+        ],
+        new: true,
+      }
+    );
 
-      return true;
-    } catch (err) {
-      console.log("---------------------------------");
-      console.log("❌❌❌❌ File UPDATE Error ❌❌❌❌");
-      console.log(err);
-      console.log("---------------------------------");
-      return false;
-    }
+    console.log("✅ MongoDB updated:", updateResult ? "Success" : "Failed");
+
+    return true;
   } catch (err) {
-    console.log("---------------------------------");
-    console.log("❌❌❌❌ Cloudinary Error ❌❌❌❌");
-    console.log(err);
-    console.log("---------------------------------");
+    console.log("❌ Error in uploadFileToCloudinary:", err.message);
     return false;
   }
 };
@@ -309,25 +288,16 @@ const uploadFileToCloudinary = async (file) => {
 const createFile = async (req, res) => {
   try {
     const documentCreated = await createFileDocumentInMongoDB(req, res);
-    console.log(
-      "documentCreated data :",
-      documentCreated.data.application[0].uploadDocuments
-    );
 
     if (!documentCreated || !documentCreated.data) {
-      console.log("❌ No document created, skipping Cloudinary upload.");
       return res
         .status(500)
         .json({ status: "Fail", message: "No document created" });
     }
 
+    const { userID } = req.user;
+    const { id: applicationId } = req.params;
     const uploadDocuments = documentCreated.data.application[0].uploadDocuments;
-    if (!uploadDocuments) {
-      console.log("❌ No documents found to upload.");
-      return res
-        .status(400)
-        .json({ status: "Fail", message: "No documents uploaded" });
-    }
 
     const documentKeys = [
       "photo",
@@ -336,29 +306,13 @@ const createFile = async (req, res) => {
       "personalStatement",
     ];
 
-    for (let i = 0; i < documentKeys.length; i++) {
-      const key = documentKeys[i];
-
+    for (const key of documentKeys) {
       if (uploadDocuments[key] && uploadDocuments[key].length > 0) {
         for (const file of uploadDocuments[key]) {
           if (file.filePath) {
-            console.log(`📤 Uploading file: &{file.filePath}`);
-
-            const isFileUploadedToCloudinary = await uploadFileToCloudinary(
-              file
-            );
-
-            if (isFileUploadedToCloudinary) {
-              console.log(`✅ Successfully uploaded: ${file.filePath}`);
-            } else {
-              console.log(`❌ Failed to upload: ${file.filePath}`);
-            }
-          } else {
-            console.log(`❌ Missing filePath for ${key}`);
+            await uploadFileToCloudinary(file, key, userID, applicationId);
           }
         }
-      } else {
-        console.log(`⚠️ No files found for ${key}`);
       }
     }
 
@@ -368,13 +322,10 @@ const createFile = async (req, res) => {
       data: documentCreated,
     });
   } catch (err) {
-    console.log("------------------------");
-    console.log(err);
-    console.log("------------------------");
-    return res.status(500).json({
-      status: "fail",
-      message: "Internal Server Error",
-    });
+    console.log("Error in createFile:", err);
+    return res
+      .status(500)
+      .json({ status: "fail", message: "Internal Server Error" });
   }
 };
 

@@ -2,25 +2,8 @@ const { FormDetails } = require("../../../schemas/formDetailSchema");
 const { Scholarship } = require("../../../schemas/scholarship");
 
 const applicationStatus = async (req, res) => {
-  // try {
-  //   const userID = req.user.userID; // Get userID from token
-  //   const scholarshipApplied = await FormDetails.find({
-  //     "application.userId": userID,
-  //   });
-  //   console.log("scholarshipApplied is :", scholarshipApplied);
-  //   res.status(200).json({
-  //     message: "Application status Data sent successfully",
-  //     AppliedData: scholarshipApplied,
-  //   });
-  // } catch (err) {
-  //   console.log(err);
-  //   res.status(500).json({
-  //     message: "Internal server error",
-  //   });
-  // }
-
   try {
-    const userID = req.user.userID; // Get userID from token
+    const userID = req.user.userID;
 
     // Fetch all applications of the user
     const scholarshipApplied = await FormDetails.find({
@@ -46,13 +29,11 @@ const applicationStatus = async (req, res) => {
       scholarshipId: { $in: scholarshipIds },
     });
 
-    // Create a map of scholarshipId -> title
     const scholarshipMap = {};
     scholarships.forEach((scholarship) => {
       scholarshipMap[scholarship.scholarshipId] = scholarship.title;
     });
 
-    // Attach scholarship title to each application
     const updatedApplications = scholarshipApplied.map((doc) => ({
       _id: doc._id,
       createdAt: doc.createdAt,

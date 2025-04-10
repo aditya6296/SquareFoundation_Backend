@@ -17,6 +17,7 @@ const {
 const {
   applicationStatusRouter,
 } = require("../api/v1/routes/applicationStatusRouter.js");
+const adminRoutes = require("../api/v1/routes/adminRoutes.js");
 const app = express();
 
 app.use(
@@ -24,6 +25,8 @@ app.use(
     origin: [
       "https://square-foundation-frontend.vercel.app",
       "http://localhost:5173",
+      "http://localhost:1800",
+      "http://localhost:1900",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
@@ -38,6 +41,7 @@ app.use(express.urlencoded({ extended: true })); // ✅ For form submissions
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/auth/otp", otpRouter);
+app.use("/api/v1/admin", adminRoutes);
 
 app.use(verifyToken); // verify token
 app.use("/api/v1/dashboard", dashboardRouter);

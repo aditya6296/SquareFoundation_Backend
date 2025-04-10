@@ -9,7 +9,13 @@ const userSchema = mongoose.Schema(
 
     password: {
       type: String,
+      required: true,
     },
+    // role: {
+    //   type: String,
+    //   enum: ["user", "admin"],
+    //   default: "user", // All new users will be regular users by default
+    // },
   },
   {
     timestamps: true,

@@ -20,7 +20,7 @@ const sendMail = async ({ email, subject, text, html }) => {
 
   try {
     const info = await gmailTransporter.sendMail({
-      from: '"OTP Verification" <todoapp@real.email>',
+      from: '"Square Foundation" <todoapp@real.email>',
       to: email,
       subject: subject,
       text: text,

@@ -1,12 +1,9 @@
 const mongoose = require("mongoose");
 
 const metaDataSchema = new mongoose.Schema({
-  metaData: {
-    type: Object,
-  },
-  // uploadTime: { type: Date, default: Date.now }, // Timestamp of file upload
-  // multerPath: { type: String }, // Local storage path
-  // cloudinaryUrl: { type: String }, // ✅ Cloudinary URL added
+  uploadTime: { type: Date, default: Date.now },
+  multerPath: { type: String },
+  cloudinaryUrl: { type: String },
 });
 
 const formData = mongoose.Schema(
@@ -15,6 +12,12 @@ const formData = mongoose.Schema(
       {
         userId: { type: String, required: true },
         applicationId: { type: String, required: true },
+
+        status: {
+          type: String,
+          enum: ["pending", "approved", "rejected"],
+          default: "pending",
+        },
 
         personalDetails: {
           name: { type: String },
@@ -54,7 +57,6 @@ const formData = mongoose.Schema(
               metaData: metaDataSchema,
             },
           ],
-          // identityDocument
           identityProof: [
             {
               identificationId: {
@@ -115,10 +117,6 @@ const formData = mongoose.Schema(
             },
           ],
         },
-        // metaData: {
-        //   uploadTime: { type: Date, default: Date.now }, // Timestamp of file upload
-        //   multerPath: { type: String }, // Path of the file in local storage
-        // },
       },
     ],
   },
